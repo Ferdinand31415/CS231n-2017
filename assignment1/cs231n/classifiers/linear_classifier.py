@@ -40,10 +40,6 @@ class LinearClassifier(object):
     loss_history = []
     choose_from = np.arange(num_train)
     for it in xrange(num_iters):
-      batch_indices = np.random.choice(choose_from, batch_size)
-      X_batch = X[batch_indices]
-      y_batch = y[batch_indices]
-
       #########################################################################
       # TODO:                                                                 #
       # Sample batch_size elements from the training data and their           #
@@ -55,7 +51,9 @@ class LinearClassifier(object):
       # Hint: Use np.random.choice to generate indices. Sampling with         #
       # replacement is faster than sampling without replacement.              #
       #########################################################################
-      pass
+      batch_indices = np.random.choice(choose_from, batch_size)
+      X_batch = X[batch_indices]
+      y_batch = y[batch_indices]
       #########################################################################
       #                       END OF YOUR CODE                                #
       #########################################################################

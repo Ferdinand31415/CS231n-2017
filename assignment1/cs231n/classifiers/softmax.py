@@ -23,14 +23,30 @@ def softmax_loss_naive(W, X, y, reg):
   # Initialize the loss and gradient to zero.
   loss = 0.0
   dW = np.zeros_like(W)
-
   #############################################################################
   # TODO: Compute the softmax loss and its gradient using explicit loops.     #
   # Store the loss in loss and the gradient in dW. If you are not careful     #
   # here, it is easy to run into numeric instability. Don't forget the        #
   # regularization!                                                           #
   #############################################################################
-  pass
+  N, C = X.shape[0], W.shape[1]
+  scores = np.dot(X, W)
+  for n in np.arange(N):
+    correct_score = scores[n, y[n]]
+    norm = np.sum(np.exp(scores[n]))
+    for j in range(C):
+        #print(W.shape, dW[j].shape, X[n].shape, dW.shape)
+        dW[:, j] += X[n] * np.exp(scores[n, j]) / norm
+        
+    dW[:, y[n]] -= X[n]
+    loss -= correct_score - np.log(norm)
+  #print('X', X.shape, 'W', W.shape, 'scores', scores.shape)
+  
+  loss /= N
+  loss += reg * np.sum(W * W)
+  dW /= N
+  dW += 2 * reg * W
+  
   #############################################################################
   #                          END OF YOUR CODE                                 #
   #############################################################################
@@ -47,14 +63,28 @@ def softmax_loss_vectorized(W, X, y, reg):
   # Initialize the loss and gradient to zero.
   loss = 0.0
   dW = np.zeros_like(W)
-
+  N = X.shape[0]
+  C = W.shape[1]
+  features = W.shape[0]
   #############################################################################
   # TODO: Compute the softmax loss and its gradient using no explicit loops.  #
   # Store the loss in loss and the gradient in dW. If you are not careful     #
   # here, it is easy to run into numeric instability. Don't forget the        #
   # regularization!                                                           #
   #############################################################################
-  pass
+  f = np.dot(X, W)
+  exp = np.exp(f)
+  norm = np.sum(exp, axis=1, keepdims=True)
+  loss = -1. / N * (np.sum(f[np.arange(N), y]) - np.sum(np.log(norm)))
+
+  softmax = exp/norm
+  softmax[np.arange(N),y] -= 1 #we correct for the substracted x, coming from derivative
+
+
+  dW += 1. / N * np.dot(X.T, softmax)
+
+  loss += reg * np.sum(W * W)
+  dW += 2 * reg * W
   #############################################################################
   #                          END OF YOUR CODE                                 #
   #############################################################################

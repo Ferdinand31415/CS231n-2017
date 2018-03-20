@@ -80,8 +80,9 @@ class TwoLayerNet(object):
     z1 = np.dot(X, W1) + b1
     a1 = np.maximum(0, z1)
     z2 = np.dot(a1, W2) + b2
-    normalization = np.sum(np.exp(z2), axis = 1, keepdims=True)
-    a2 = np.exp(z2) / normalization
+    expz2 = np.exp(z2)
+    normalization = np.sum(expz2, axis = 1, keepdims=True)
+    a2 = expz2 / normalization
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
@@ -99,6 +100,7 @@ class TwoLayerNet(object):
     #############################################################################
     y_oh = np.zeros((N, b2.shape[0]))
     y_oh[np.arange(y.shape[0]), y] = 1
+    #print('shape yoh', y_oh.shape)
     loss = -1.0 / N * np.sum(y_oh * np.log(a2))
     if reg > 0:
        loss += reg * (np.sum(W1 * W1) + np.sum(W2 * W2))
@@ -107,13 +109,19 @@ class TwoLayerNet(object):
     #############################################################################
 
     # Backward pass: compute gradients
-    grads = {}
+    grads = {parname: np.zeros_like(par) for parname, par in self.params.items()}
     #############################################################################
     # TODO: Compute the backward pass, computing the derivatives of the weights #
     # and biases. Store the results in the grads dictionary. For example,       #
     # grads['W1'] should store the gradient on W1, and be a matrix of same size #
     #############################################################################
-    pass
+    error2 = a2 - y_oh
+    derivative_a1 = a1 > 0
+    error1 = np.dot(error2, W2.T) * derivative_a1
+    grads['W1'] = 1. / N * np.dot(X.T, error1) + 2 * reg * W1
+    grads['W2'] = 1. / N * np.dot(a1.T, error2) + 2 * reg * W2
+    grads['b1'] = 1. / N * np.sum(error1, axis=0)
+    grads['b2'] = 1. / N * np.sum(error2, axis=0)
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
@@ -148,16 +156,16 @@ class TwoLayerNet(object):
     loss_history = []
     train_acc_history = []
     val_acc_history = []
+    vals = []
 
     for it in xrange(num_iters):
-      X_batch = None
-      y_batch = None
-
       #########################################################################
       # TODO: Create a random minibatch of training data and labels, storing  #
       # them in X_batch and y_batch respectively.                             #
       #########################################################################
-      pass
+      batch_indices = np.random.choice(num_train, batch_size)
+      X_batch = X[batch_indices]
+      y_batch = y[batch_indices]
       #########################################################################
       #                             END OF YOUR CODE                          #
       #########################################################################
@@ -172,7 +180,8 @@ class TwoLayerNet(object):
       # using stochastic gradient descent. You'll need to use the gradients   #
       # stored in the grads dictionary defined above.                         #
       #########################################################################
-      pass
+      for parname, param in self.params.items():
+        param -= learning_rate * grads[parname]
       #########################################################################
       #                             END OF YOUR CODE                          #
       #########################################################################
@@ -187,14 +196,13 @@ class TwoLayerNet(object):
         val_acc = (self.predict(X_val) == y_val).mean()
         train_acc_history.append(train_acc)
         val_acc_history.append(val_acc)
-
         # Decay learning rate
         learning_rate *= learning_rate_decay
 
     return {
       'loss_history': loss_history,
       'train_acc_history': train_acc_history,
-      'val_acc_history': val_acc_history,
+      'val_acc_history': val_acc_history
     }
 
   def predict(self, X):
@@ -212,12 +220,21 @@ class TwoLayerNet(object):
       the elements of X. For all i, y_pred[i] = c means that X[i] is predicted
       to have class c, where 0 <= c < C.
     """
-    y_pred = None
 
     ###########################################################################
     # TODO: Implement this function; it should be VERY simple!                #
     ###########################################################################
-    pass
+    W1, b1 = self.params['W1'], self.params['b1']
+    W2, b2 = self.params['W2'], self.params['b2']
+    N, D = X.shape
+
+    # Compute the forward pass
+    z1 = np.dot(X, W1) + b1
+    a1 = np.maximum(0, z1)
+    z2 = np.dot(a1, W2) + b2
+    y_pred = np.argmax(z2, axis = 1)
+    #print('IN PREDICT:',np.exp(z2).shape, ypred)
+     
     ###########################################################################
     #                              END OF YOUR CODE                           #
     ###########################################################################
