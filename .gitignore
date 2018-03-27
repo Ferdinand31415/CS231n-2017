@@ -1,2 +1,5 @@
 **/datasets/
 assignment1/.ipynb_checkpoints/
+assignment2/.ipynb_checkpoints/
+*.swp
+*.swo

@@ -159,6 +159,7 @@ class Solver(object):
         self.best_val_acc = 0
         self.best_params = {}
         self.loss_history = []
+        self.grad_history = []
         self.train_acc_history = []
         self.val_acc_history = []
 
@@ -183,6 +184,7 @@ class Solver(object):
         # Compute loss and gradient
         loss, grads = self.model.loss(X_batch, y_batch)
         self.loss_history.append(loss)
+        self.grad_history.append(grads)
 
         # Perform a parameter update
         for p, w in self.model.params.items():
@@ -191,7 +193,7 @@ class Solver(object):
             next_w, next_config = self.update_rule(w, dw, config)
             self.model.params[p] = next_w
             self.optim_configs[p] = next_config
-
+    
 
     def _save_checkpoint(self):
         if self.checkpoint_name is None: return

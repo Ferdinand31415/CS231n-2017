@@ -30,6 +30,56 @@ def affine_relu_backward(dout, cache):
     dx, dw, db = affine_backward(da, fc_cache)
     return dx, dw, db
 
+def affine_batchnorm_relu_dropout_forward(x, w, b, use_batchnorm, use_dropout,\
+                                        dropout_param={}, gamma = 1, beta = 0):
+    """
+    Convenience layer that performs
+    affine - [batchnorm] - relu - [dropout]
+
+    Inputs:
+    - x: Input to the affine layer
+    - w, b: Weights for the affine layer
+    
+    Returns a tuple of:
+    - out: Output from the ReLU
+    - cache: Object to give to the backward pass
+    """
+    cache = {}
+
+    out, fc_cache = affine_forward(x, w, b)
+    cache['fc'] = fc_cache
+
+    if use_batchnorm:
+        out, batch_cache = batchnorm_forward(out, gamma, beta, bn_param)
+        cache['batch'] = batch_cache
+    
+    out, relu_cache = relu_forward(out)
+    cache['relu'] = relu_cache
+
+    if use_dropout:
+        pass
+        #out, dropout_cache = dropout_forward(out, 
+        #cache['dropout'] = dropout_cache
+    return out, cache
+
+
+def affine_batchnorm_relu_dropout_backward(dout, cache, use_batchnorm, use_dropout):
+    """
+    Backward pass for the affine-batch-relu-droupout convenience layer.
+    """
+    fc_cache, relu_cache = cache['fc'], cache['relu']
+
+    if use_dropout:
+        pass
+
+    dout = relu_backward(dout, relu_cache)
+    
+    dgamma, dbeta = None, None
+    if use_batchnorm:
+        dout, dgamma, dbeta = batchnorm_backward_alt(dout, cache['batch'])
+
+    dx, dw, db = affine_backward(dout, fc_cache)
+    return dx, dw, db, dgamma, dbeta
 
 def conv_relu_forward(x, w, b, conv_param):
     """
